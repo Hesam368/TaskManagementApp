@@ -1,178 +1,57 @@
 ﻿public class Program{
     public static void Main(){
         
-        List<Task> tasks = new List<Task>();
+    // Step 1: Create a Team
+        Team devTeam = new Team("Development Team");
+        TeamMember alice = new TeamMember("Alice", TeamMember.RoleType.TeamLeader);
+        TeamMember bob = new TeamMember("Bob", TeamMember.RoleType.Developer);
+        devTeam.AddMember(alice);
+        devTeam.AddMember(bob);
+        devTeam.AssignTeamLeader(alice);
+        Console.WriteLine($"Team '{devTeam.Name}' created with leader: {devTeam.TeamLeader.Name}");
 
-        while(true){
-            Console.WriteLine("\n---Task Management System---");
-            Console.WriteLine("1. Create a Task");
-            Console.WriteLine("2. View All Tasks");
-            Console.WriteLine("3. Add a Subtask");
-            Console.WriteLine("4. Mark Task as Completed");
-            Console.WriteLine("5. Remove a Subtask");
-            Console.WriteLine("6. Exit");
-
-            Console.Write("Enter your choice: ");
-            var choice = Console.ReadLine();
-
-            switch(choice){
-                case "1":
-                    CreateTask(tasks);
-                    break;
-                case "2":
-                    ViewTasks(tasks);
-                    break;
-                case "3":
-                    AddSubtask(tasks);
-                    break;
-                case "4":
-                    MarkTaskAsCompleted(tasks);
-                    break;
-                case "5":
-                    RemoveSubtask(tasks);
-                    break;
-                case "6":
-                    Console.WriteLine("Exiting...");
-                    return;
-                default:
-                    Console.WriteLine("Invalid choice! Please try again.");
-                    break;
-            }
-        }
-    }
-
-    private static void CreateTask(List<Task> tasks){
-        Console.Write("Enter task title: ");
-        string title = Console.ReadLine();
-
-        Console.Write("Enter task description: ");
-        string description = Console.ReadLine();
-
-        Console.Write("Enter team member name: ");
-        string doerName = Console.ReadLine();
-        Console.WriteLine("Select role: 1. TeamLeader 2. Developer 3. Tester 4. Designer");
-        int roleChoice = int.Parse(Console.ReadLine());
-        TeamMember.RoleType role = (TeamMember.RoleType)(roleChoice);
-
-        TeamMember doer = new TeamMember(doerName, role);
+    // Step 2: Create a Task and Assign It to the Team
+        TaskManager manager = TaskManager.Instance;
+        Task mainTask = manager.CreateTask(
+            title: "Build API",
+            assignedTeam: devTeam,
+            deadline: DateTime.Now.AddDays(5),
+            priority: Task.TaskPriority.High
+        );
         
-        Console.Write("Enter task deadline (yyyy-MM-dd): ");
-        DateTime deadline = DateTime.Parse(Console.ReadLine());
-
-        Console.WriteLine("Select priority: 1. High 2. Medium 3. Low");
-        int priorityChoice = int.Parse(Console.ReadLine());
-        Task.TaskPriority priority = (Task.TaskPriority)(priorityChoice - 1);
-
-        Task newTask = new Task(title, doer, deadline, priority);
-        newTask.Description = description;
-
-        tasks.Add(newTask);
-
-        Console.WriteLine($"Task '{title}' created successfully!");
-    }
-
-    private static void ViewTasks(List<Task> tasks){
-        if (tasks.Count == 0)
+    // Step 3: Add Subtasks
+        Task subtask1 = new Task("Set Up Database", devTeam, DateTime.Now.AddDays(3), Task.TaskPriority.Medium);
+        Task subtask2 = new Task("Implement Endpoints", devTeam, DateTime.Now.AddDays(4), Task.TaskPriority.High);
+        mainTask.AddSubtask(subtask1);
+        mainTask.AddSubtask(subtask2);
+        Console.WriteLine($"Subtasks added to task '{mainTask.Title}':");
+        foreach (var subtask in mainTask.Subtasks)
         {
-            Console.WriteLine("No tasks available.");
-            return;
+            Console.WriteLine($"- {subtask.Title}");
         }
-        foreach (Task task in tasks){
-            Console.WriteLine($"\nTask: {task.Title} (Priority: {task.Priority}, Completed: {task.IsCompleted})");
-            Console.WriteLine($"  Description: {task.Description}");
-            Console.WriteLine($"  Assigned to: {task.Doer.Name} ({task.Doer.Role})");
-            Console.WriteLine($"  Deadline: {task.Deadline}");
-            if (task.Subtasks.Count > 0)
-            {
-                Console.WriteLine("  Subtasks:");
-                foreach (Task subtask in task.Subtasks)
-                {
-                    Console.WriteLine($"    - {subtask.Title} (Completed: {subtask.IsCompleted})");
-                }
-            }
-        }
-    }
 
-    private static void AddSubtask(List<Task> tasks){
-        Console.Write("Enter the title of the main task to add a subtask to: ");
-        string mainTaskTitle = Console.ReadLine();
-
-        Task mainTask = tasks.Find(t => t.Title.Equals(mainTaskTitle, StringComparison.OrdinalIgnoreCase));
-        if (mainTask == null)
+    // Step 4: Mark Main Task as Completed
+        mainTask.MarkAsCompleted();
+        Console.WriteLine($"Task '{mainTask.Title}' status: Completed = {mainTask.IsCompleted}");
+        foreach (var subtask in mainTask.Subtasks)
         {
-            Console.WriteLine("Main task not found.");
-            return;
+            Console.WriteLine($"- Subtask '{subtask.Title}' status: Completed = {subtask.IsCompleted}");
         }
 
-        Console.Write("Enter subtask title: ");
-        string subtaskTitle = Console.ReadLine();
-
-        Console.Write("Enter team member name for the subtask: ");
-        string doerName = Console.ReadLine();
-
-        Console.WriteLine("Select role: 1. TeamLeader 2. Developer 3. Tester 4. Designer");
-        int roleChoice = int.Parse(Console.ReadLine());
-        TeamMember.RoleType role = (TeamMember.RoleType)(roleChoice - 1);
-
-        TeamMember subtaskDoer = new TeamMember(doerName, role);
-
-        Console.Write("Enter subtask deadline (yyyy-MM-dd): ");
-        DateTime subtaskDeadline = DateTime.Parse(Console.ReadLine());
-
-        Console.WriteLine("Select priority: 1. High 2. Medium 3. Low");
-        int priorityChoice = int.Parse(Console.ReadLine());
-        Task.TaskPriority priority = (Task.TaskPriority)(priorityChoice - 1);
-
-        Task subtask = new Task(subtaskTitle, subtaskDoer, subtaskDeadline, priority);
-
-        try
+    // Step 5: List Tasks by Priority
+        Console.WriteLine("\nTasks by priority:");
+        foreach (var task in manager.GetTasksByPriority(Task.TaskPriority.High))
         {
-            mainTask.AddSubtask(subtask);
-            Console.WriteLine($"Subtask '{subtaskTitle}' added successfully!");
+            Console.WriteLine($"- {task.Title} (Priority: {task.Priority})");
         }
-        catch (Exception ex)
+
+    // Step 6: Test Removing a Subtask
+        Console.WriteLine($"\nRemoving subtask '{subtask1.Title}'...");
+        mainTask.RemoveSubtask(subtask1);
+        Console.WriteLine("Remaining subtasks:");
+        foreach (var subtask in mainTask.Subtasks)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine($"- {subtask.Title}");
         }
-    }
-
-    private static void MarkTaskAsCompleted(List<Task> tasks){
-        Console.Write("Enter the title of the task to mark as completed: ");
-        string taskTitle = Console.ReadLine();
-
-        Task task = tasks.Find(t => t.Title.Equals(taskTitle, StringComparison.OrdinalIgnoreCase));
-        if (task == null)
-        {
-            Console.WriteLine("Task not found.");
-            return;
-        }
-
-        task.MarkAsCompleted();
-        Console.WriteLine($"Task '{task.Title}' marked as completed!");
-    }
-
-    private static void RemoveSubtask(List<Task> tasks){
-        Console.Write("Enter the title of the main task to remove a subtask from: ");
-        string mainTaskTitle = Console.ReadLine();
-
-        Task mainTask = tasks.Find(t => t.Title.Equals(mainTaskTitle, StringComparison.OrdinalIgnoreCase));
-        if (mainTask == null)
-        {
-            Console.WriteLine("Main task not found.");
-            return;
-        }
-
-        Console.Write("Enter the title of the subtask to remove: ");
-        string subtaskTitle = Console.ReadLine();
-
-        Task subtask = mainTask.Subtasks.Find(st => st.Title.Equals(subtaskTitle, StringComparison.OrdinalIgnoreCase));
-        if (subtask == null)
-        {
-            Console.WriteLine("Subtask not found.");
-            return;
-        }
-
-        mainTask.RemoveSubtask(subtask);
-        Console.WriteLine($"Subtask '{subtask.Title}' removed successfully!");
     }
 }

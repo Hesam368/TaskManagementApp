@@ -5,6 +5,7 @@ public class TeamMember{
 
     public TeamMember(string name, RoleType role){
         if(string.IsNullOrWhiteSpace(name)){throw new ArgumentException("Name of memeber cannot be empty!");}
+        ID = Guid.NewGuid();
         Name = name;
         Role = role;
     }

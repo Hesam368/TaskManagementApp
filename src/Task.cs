@@ -22,12 +22,14 @@ public class Task : IReportable{
         Subtasks = new List<Task>(); //Initialize the subtasks list
     }
 
-    public void MarkAsCompleted(){
+    public void MarkAsCompleted(bool logCompletion = true){
         IsCompleted = true;
         foreach(Task subtask in Subtasks){ //When the task is completed all subtasks need to be completed
-            subtask.MarkAsCompleted();
+            subtask.MarkAsCompleted(false);
         }
-        Console.WriteLine($"Task '{Title}' completed by team '{AssignedTeam.Name}'.");
+        if (logCompletion){
+            Console.WriteLine($"Task '{Title}' completed by team '{AssignedTeam.Name}'.");
+        }
     }
 
     public void AddSubtask(Task subtask){
