@@ -17,7 +17,7 @@ public class TaskManager{
     public Task CreateTask(string title, Team assignedTeam, DateTime deadline, Task.TaskPriority priority){
         Task task = new Task(title, assignedTeam, deadline, priority);
         tasks.Add(task);
-        Console.WriteLine($"Task '{title}' created and assigned to team '{assignedTeam.Name}'.");
+        //Console.WriteLine($"Task '{title}' created and assigned to team '{assignedTeam.Name}'.");
         return task;
     }
 

@@ -29,6 +29,7 @@
             deadline: DateTime.UtcNow.AddDays(7),
             priority: Task.TaskPriority.High
         );
+        Console.WriteLine(mainTask.GenerateReport());
 
         Task bugFixTask = TaskManager.Instance.CreateTask(
             title: "Fix Critical Bug",
@@ -36,6 +37,8 @@
             deadline: DateTime.UtcNow.AddDays(2),
             priority: Task.TaskPriority.High
         );
+        Console.WriteLine(bugFixTask.GenerateReport());
+        Console.WriteLine();
 
         // Step 3: Add Subtasks to Main Task
         mainTask.AddSubtask("Design the Feature", DateTime.UtcNow.AddDays(3), Task.TaskPriority.Medium);
@@ -52,7 +55,6 @@
 
         // Step 4: Mark a Task as Completed
         mainTask.MarkAsCompleted();
-        Console.WriteLine($"Task '{mainTask.Title}' and its subtasks have been completed.");
         Console.WriteLine();
 
         // Step 5: View All Tasks by Priority

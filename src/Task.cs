@@ -43,7 +43,7 @@ public class Task : IReportable{
             subtask.MarkAsCompleted(false);
         }
         if (logCompletion){
-            Console.WriteLine($"Task '{Title}' completed by team '{AssignedTeam.Name}'.");
+            Console.WriteLine($"Task '{Title}' and its subtasks completed by team '{AssignedTeam.Name}'.");
         }
     }
 
@@ -72,7 +72,7 @@ public class Task : IReportable{
     //Generate report for the task
     public string GenerateReport()
     {
-        return $"Task: {Title} Assigned To: {AssignedTeam.Name}, Deadline: {Deadline}, Completed: {IsCompleted}";
+        return $"Task: {Title}, Assigned To: {AssignedTeam.Name}, Deadline: {Deadline}, Completed: {IsCompleted}";
     }
 
     public struct TaskStats{
