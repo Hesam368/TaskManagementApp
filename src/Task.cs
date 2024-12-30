@@ -70,9 +70,9 @@ public class Task : IReportable{
     }
 
     //Generate report for the task
-    public string GenerateReport()
+    public virtual string GenerateReport()
     {
-        return $"Task: {Title}, Assigned To: {AssignedTeam.Name}, Deadline: {Deadline}, Completed: {IsCompleted}";
+        return $"Task: {Title} (Priority: {Priority}), Assigned To: {AssignedTeam.Name}, Deadline: {Deadline}, Completed: {IsCompleted}";
     }
 
     public struct TaskStats{
