@@ -17,7 +17,6 @@ public class TaskManager{
     public Task CreateTask(string title, Team assignedTeam, DateTime deadline, Task.TaskPriority priority){
         Task task = new Task(title, assignedTeam, deadline, priority);
         tasks.Add(task);
-        //Console.WriteLine($"Task '{title}' created and assigned to team '{assignedTeam.Name}'.");
         return task;
     }
 
@@ -43,6 +42,13 @@ public class TaskManager{
     public Task.TaskStats GetTaskStats(){
         int completedTasks = tasks.Count(t => t.IsCompleted);
         return new Task.TaskStats(tasks.Count, completedTasks);
+    }
+
+    public void DisplayReports(IEnumerable<IReportable> reportables){
+        foreach (var reportable in reportables)
+        {
+            Console.WriteLine(reportable.GenerateReport());
+        }
     }
     
 }
