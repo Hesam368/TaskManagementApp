@@ -68,5 +68,6 @@
         var stats = taskManager.GetTaskStats();
         Console.WriteLine("Task Statistics:");
         Console.WriteLine(stats);
+        Console.WriteLine(TaskHelper.CalculateCompletionPercentage(new List<Task> { mainTask, bugFixTask }) + "% completed.");
     }
 }
