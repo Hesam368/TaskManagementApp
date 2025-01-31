@@ -1,13 +1,16 @@
-namespace TaskManagementApp.Models{
-    public class TeamMember{
+namespace TaskManagementApp.Models
+{
+    public class TeamMember
+    {
         //Properties
-        public Guid ID{get; private set;}
-        public string Name{get; set;}
-        public RoleType Role{get; set;}
+        public Guid ID { get; }
+        public string Name { get; }
+        public RoleType Role { get; }
 
         //Constructor
-        public TeamMember(string name, RoleType role){
-            if(string.IsNullOrWhiteSpace(name))
+        private TeamMember(string name, RoleType role)
+        {
+            if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentException("Name of memeber cannot be empty!");
             }
@@ -16,11 +19,17 @@ namespace TaskManagementApp.Models{
             Role = role;
         }
 
-        public enum RoleType{
+        public static TeamMember Create(string name, RoleType role)
+        {
+            return new TeamMember(name, role);
+        }
+
+        public enum RoleType
+        {
             TeamLeader,
             Developer,
             Tester,
-            Designer
+            Designer,
         }
     }
 }
