@@ -1,72 +1,98 @@
-﻿using TaskManagementApp.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using TaskManagementApp.Models;
 using TaskManagementApp.Services;
 using TaskManagementApp.Utilities;
 
-public class Program{
-    public static void Main(){
-        var taskManager = TaskManager.Instance;
+public class Program
+{
+    public static void Main()
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<ITaskService, TaskService>()
+            .AddSingleton<TaskConfig>(new TaskConfig(10))
+            .AddSingleton<IReportable<WorkTask>, TaskReportGenerator>()
+            .AddSingleton<IReportable<Subtask>, SubtaskReportGenerator>()
+            .AddSingleton<IReportable<Team>, TeamReportGenerator>()
+            .AddSingleton<ITaskManager, TaskManager>()
+            .AddSingleton<ILogger, ConsoleLogger>()
+            .AddSingleton<ITeamManager, TeamManager>()
+            .BuildServiceProvider();
+
+        var taskManager = serviceProvider.GetRequiredService<ITaskManager>();
+        var teamManager = serviceProvider.GetRequiredService<ITeamManager>();
+        var logger = serviceProvider.GetRequiredService<ILogger>();
+        var taskService = serviceProvider.GetRequiredService<ITaskService>();
+        var taskReportGenerator = serviceProvider.GetRequiredService<IReportable<WorkTask>>();
+        var subtaskReportGenerator = serviceProvider.GetRequiredService<IReportable<Subtask>>();
+
         Console.WriteLine("=== Task Management System ===");
 
         // Step 1: Create Teams
-        Team devTeam = new Team("Development Team");
-        TeamMember alice = new TeamMember("Alice", TeamMember.RoleType.TeamLeader);
-        TeamMember bob = new TeamMember("Bob", TeamMember.RoleType.Developer);
+        Team devTeam = teamManager.CreateTeam("Development Team");
+        TeamMember alice = teamManager.CreateTeamMember("Alice", TeamMember.RoleType.TeamLeader);
+        TeamMember bob = teamManager.CreateTeamMember("Bob", TeamMember.RoleType.Developer);
         devTeam.AddMember(alice);
         devTeam.AddMember(bob);
         devTeam.AssignTeamLeader(alice);
 
-        Team qaTeam = new Team("QA Team");
-        TeamMember charlie = new TeamMember("Charlie", TeamMember.RoleType.Tester);
+        Team qaTeam = teamManager.CreateTeam("QA Team");
+        TeamMember charlie = teamManager.CreateTeamMember("Charlie", TeamMember.RoleType.Tester);
         qaTeam.AddMember(charlie);
 
         Console.WriteLine("Teams created:");
-        taskManager.DisplayReports(new List<IReportable> { devTeam, qaTeam });
-        Console.WriteLine();
 
         // Step 2: Create Tasks
         WorkTask mainTask = taskManager.CreateTask(
             title: "Develop New Feature",
             assignedTeam: devTeam,
             deadline: DateTime.UtcNow.AddDays(7),
-            priority: WorkTask.TaskPriority.High
+            priority: WorkTask.TaskPriority.High,
+            logger: logger,
+            config: new TaskConfig(10)
         );
 
         WorkTask bugFixTask = taskManager.CreateTask(
             title: "Fix Critical Bug",
             assignedTeam: qaTeam,
             deadline: DateTime.UtcNow.AddDays(2),
-            priority: WorkTask.TaskPriority.High
+            priority: WorkTask.TaskPriority.High,
+            logger: logger,
+            config: new TaskConfig(10)
         );
-        taskManager.DisplayReports(new List<IReportable> { mainTask, bugFixTask });
-        Console.WriteLine();
 
         // Step 3: Create Subtasks
         Subtask subtask1 = taskManager.CreateSubtask(
             title: "Design the Feature",
             deadline: DateTime.UtcNow.AddDays(3),
             priority: WorkTask.TaskPriority.Medium,
-            parentTask: mainTask
+            parentTask: mainTask,
+            logger: logger,
+            config: new TaskConfig(10)
         );
 
         Subtask subtask2 = taskManager.CreateSubtask(
             title: "Implement the Feature",
             deadline: DateTime.UtcNow.AddDays(5),
             priority: WorkTask.TaskPriority.High,
-            parentTask: mainTask
+            parentTask: mainTask,
+            logger: logger,
+            config: new TaskConfig(10)
         );
 
         Subtask subtask3 = taskManager.CreateSubtask(
             title: "Write Unit Tests",
             deadline: DateTime.UtcNow.AddDays(6),
             priority: WorkTask.TaskPriority.Medium,
-            parentTask: mainTask
+            parentTask: mainTask,
+            logger: logger,
+            config: new TaskConfig(10)
         );
 
         Console.WriteLine("Main Task and Subtasks:");
-        Console.WriteLine(mainTask.GenerateReport());
+        Console.WriteLine(taskReportGenerator.GenerateReport(mainTask));
         foreach (var subtask in mainTask.Subtasks)
         {
-            Console.WriteLine($"  - {subtask.GenerateReport()}");
+            Console.WriteLine($"  - {taskReportGenerator.GenerateReport(subtask)}");
         }
         Console.WriteLine();
 
@@ -78,7 +104,7 @@ public class Program{
         Console.WriteLine("Tasks by Priority (High):");
         foreach (var task in taskManager.GetTasksByPriority(WorkTask.TaskPriority.High))
         {
-            Console.WriteLine($"- {task.GenerateReport()}");
+            Console.WriteLine($"- {taskReportGenerator.GenerateReport(task)}");
         }
         Console.WriteLine();
 
@@ -86,6 +112,9 @@ public class Program{
         var stats = taskManager.GetTaskStats();
         Console.WriteLine("Task Statistics:");
         Console.WriteLine(stats);
-        Console.WriteLine(TaskHelper.CalculateCompletionPercentage(new List<WorkTask> { mainTask, bugFixTask }) + "% completed.");
+        Console.WriteLine(
+            taskService.CalculateCompletionPercentage(new List<WorkTask> { mainTask, bugFixTask })
+                + "% completed."
+        );
     }
 }

@@ -1,30 +1,49 @@
-namespace TaskManagementApp.Models{
+namespace TaskManagementApp.Models
+{
     public class Subtask : WorkTask
     {
-        public WorkTask ParentTask { get; private set; }
+        public WorkTask ParentTask { get; }
+
         private Subtask(
             string title,
             Team assignedTeam,
             DateTime deadline,
             TaskPriority priority,
-            WorkTask parentTask) : base(title, assignedTeam, deadline, priority)
+            WorkTask parentTask,
+            ILogger logger,
+            TaskConfig config
+        )
+            : base(title, assignedTeam, deadline, priority, logger, config)
         {
-            if(parentTask == null)
-            {
-                throw new ArgumentNullException(nameof(parentTask), "Parent task cannot be null!");
-            }
-            ParentTask = parentTask;
-            ParentTask.AddSubtask(this);
+            ParentTask =
+                parentTask
+                ?? throw new ArgumentNullException(
+                    nameof(parentTask),
+                    "Parent task cannot be null!"
+                );
         }
 
-        internal static Subtask Create(string title, Team assignedTeam, DateTime deadline, TaskPriority priority, WorkTask parentTask)
+        internal static Subtask Create(
+            string title,
+            Team assignedTeam,
+            DateTime deadline,
+            TaskPriority priority,
+            WorkTask parentTask,
+            ILogger logger,
+            TaskConfig config
+        )
         {
-            return new Subtask(title, assignedTeam, deadline, priority, parentTask);
-        }
-
-        public override string GenerateReport()
-        {
-            return $"Subtask: {Title} (Priority: {Priority}), Parent Task: {ParentTask.Title}, Deadline: {Deadline}, Completed: {IsCompleted}";
+            var subtask = new Subtask(
+                title,
+                assignedTeam,
+                deadline,
+                priority,
+                parentTask,
+                logger,
+                config
+            );
+            parentTask.AddSubtask(subtask);
+            return subtask;
         }
     }
 }
