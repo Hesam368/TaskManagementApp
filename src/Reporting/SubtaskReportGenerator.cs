@@ -1,6 +1,7 @@
+using TaskManagementApp.Interfaces;
 using TaskManagementApp.Models;
 
-namespace TaskManagementApp.Services
+namespace TaskManagementApp.Reporting
 {
     public class SubtaskReportGenerator : IReportable<Subtask>
     {

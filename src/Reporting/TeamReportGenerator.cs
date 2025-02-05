@@ -1,6 +1,7 @@
+using TaskManagementApp.Interfaces;
 using TaskManagementApp.Models;
 
-namespace TaskManagementApp.Services
+namespace TaskManagementApp.Reporting
 {
     //Generate team report
     public class TeamReportGenerator : IReportable<Team>

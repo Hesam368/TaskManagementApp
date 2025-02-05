@@ -1,3 +1,5 @@
+using TaskManagementApp.Interfaces;
+
 namespace TaskManagementApp.Models
 {
     public class Subtask : WorkTask
@@ -23,7 +25,7 @@ namespace TaskManagementApp.Models
                 );
         }
 
-        internal static Subtask Create(
+        public static Subtask Create(
             string title,
             Team assignedTeam,
             DateTime deadline,

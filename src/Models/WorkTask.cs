@@ -1,3 +1,5 @@
+using TaskManagementApp.Interfaces;
+
 namespace TaskManagementApp.Models
 {
     public class WorkTask

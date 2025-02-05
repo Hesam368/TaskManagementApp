@@ -1,14 +1,27 @@
+using TaskManagementApp.Interfaces;
 using TaskManagementApp.Models;
 
-public class TeamManager : ITeamManager
+namespace TaskManagementApp.Services
 {
-    public Team CreateTeam(string name)
+    public class TeamManager : ITeamManager
     {
-        return Team.Create(name);
-    }
+        private readonly List<Team> _teams = new();
 
-    public TeamMember CreateTeamMember(string name, TeamMember.RoleType role)
-    {
-        return TeamMember.Create(name, role);
+        public Team CreateTeam(string name)
+        {
+            Team team = Team.Create(name);
+            _teams.Add(team);
+            return team;
+        }
+
+        public TeamMember CreateTeamMember(string name, TeamMember.RoleType role)
+        {
+            return TeamMember.Create(name, role);
+        }
+
+        public List<Team> GetAllTeams()
+        {
+            return _teams;
+        }
     }
 }

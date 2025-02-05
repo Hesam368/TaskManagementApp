@@ -1,3 +1,4 @@
+using TaskManagementApp.Interfaces;
 using TaskManagementApp.Models;
 
 namespace TaskManagementApp.Services
@@ -21,9 +22,7 @@ namespace TaskManagementApp.Services
             string title,
             Team assignedTeam,
             DateTime deadline,
-            WorkTask.TaskPriority priority,
-            ILogger logger,
-            TaskConfig config
+            WorkTask.TaskPriority priority
         )
         {
             WorkTask task = WorkTask.Create(
@@ -31,8 +30,8 @@ namespace TaskManagementApp.Services
                 assignedTeam,
                 deadline,
                 priority,
-                logger,
-                config
+                _logger,
+                _config
             );
             _tasks.Add(task);
             return task;
@@ -43,9 +42,7 @@ namespace TaskManagementApp.Services
             string title,
             DateTime deadline,
             WorkTask.TaskPriority priority,
-            WorkTask parentTask,
-            ILogger logger,
-            TaskConfig config
+            WorkTask parentTask
         )
         {
             return Subtask.Create(
@@ -54,8 +51,8 @@ namespace TaskManagementApp.Services
                 deadline,
                 priority,
                 parentTask,
-                logger,
-                config
+                _logger,
+                _config
             );
         }
 
@@ -80,6 +77,11 @@ namespace TaskManagementApp.Services
         {
             int completedTasks = _tasks.Count(t => t.IsCompleted);
             return new WorkTask.TaskStats(_tasks.Count, completedTasks);
+        }
+
+        public List<WorkTask> GetAllTasks()
+        {
+            return _tasks;
         }
     }
 }

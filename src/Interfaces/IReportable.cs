@@ -1,4 +1,4 @@
-namespace TaskManagementApp.Services
+namespace TaskManagementApp.Interfaces
 {
     public interface IReportable<T>
     {

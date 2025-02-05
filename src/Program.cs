@@ -1,31 +1,33 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TaskManagementApp.Interfaces;
 using TaskManagementApp.Models;
+using TaskManagementApp.Reporting;
 using TaskManagementApp.Services;
-using TaskManagementApp.Utilities;
 
 public class Program
 {
     public static void Main()
     {
         var serviceProvider = new ServiceCollection()
-            .AddSingleton<ITaskService, TaskService>()
-            .AddSingleton<TaskConfig>(new TaskConfig(10))
-            .AddSingleton<IReportable<WorkTask>, TaskReportGenerator>()
-            .AddSingleton<IReportable<Subtask>, SubtaskReportGenerator>()
-            .AddSingleton<IReportable<Team>, TeamReportGenerator>()
+            .AddTransient<ITaskService, TaskService>()
+            .AddTransient<IReportable<WorkTask>, TaskReportGenerator>()
+            .AddTransient<IReportable<Subtask>, SubtaskReportGenerator>()
+            .AddTransient<IReportable<Team>, TeamReportGenerator>()
+            .AddTransient<ILogger, ConsoleLogger>()
             .AddSingleton<ITaskManager, TaskManager>()
-            .AddSingleton<ILogger, ConsoleLogger>()
             .AddSingleton<ITeamManager, TeamManager>()
+            .AddSingleton<TaskConfig>(new TaskConfig(10))
             .BuildServiceProvider();
 
-        var taskManager = serviceProvider.GetRequiredService<ITaskManager>();
-        var teamManager = serviceProvider.GetRequiredService<ITeamManager>();
-        var logger = serviceProvider.GetRequiredService<ILogger>();
         var taskService = serviceProvider.GetRequiredService<ITaskService>();
         var taskReportGenerator = serviceProvider.GetRequiredService<IReportable<WorkTask>>();
         var subtaskReportGenerator = serviceProvider.GetRequiredService<IReportable<Subtask>>();
+        var teamReportGenerator = serviceProvider.GetRequiredService<IReportable<Team>>();
+        var logger = serviceProvider.GetRequiredService<ILogger>();
+        var taskManager = serviceProvider.GetRequiredService<ITaskManager>();
+        var teamManager = serviceProvider.GetRequiredService<ITeamManager>();
 
-        Console.WriteLine("=== Task Management System ===");
+        logger.Log("=== Task Management System ===");
 
         // Step 1: Create Teams
         Team devTeam = teamManager.CreateTeam("Development Team");
@@ -39,82 +41,75 @@ public class Program
         TeamMember charlie = teamManager.CreateTeamMember("Charlie", TeamMember.RoleType.Tester);
         qaTeam.AddMember(charlie);
 
-        Console.WriteLine("Teams created:");
+        logger.Log("Teams created:");
+        foreach (var team in teamManager.GetAllTeams())
+        {
+            logger.Log(teamReportGenerator.GenerateReport(team));
+        }
 
         // Step 2: Create Tasks
         WorkTask mainTask = taskManager.CreateTask(
             title: "Develop New Feature",
             assignedTeam: devTeam,
             deadline: DateTime.UtcNow.AddDays(7),
-            priority: WorkTask.TaskPriority.High,
-            logger: logger,
-            config: new TaskConfig(10)
+            priority: WorkTask.TaskPriority.High
         );
 
         WorkTask bugFixTask = taskManager.CreateTask(
             title: "Fix Critical Bug",
             assignedTeam: qaTeam,
             deadline: DateTime.UtcNow.AddDays(2),
-            priority: WorkTask.TaskPriority.High,
-            logger: logger,
-            config: new TaskConfig(10)
+            priority: WorkTask.TaskPriority.High
         );
 
         // Step 3: Create Subtasks
-        Subtask subtask1 = taskManager.CreateSubtask(
+        taskManager.CreateSubtask(
             title: "Design the Feature",
             deadline: DateTime.UtcNow.AddDays(3),
             priority: WorkTask.TaskPriority.Medium,
-            parentTask: mainTask,
-            logger: logger,
-            config: new TaskConfig(10)
+            parentTask: mainTask
         );
 
-        Subtask subtask2 = taskManager.CreateSubtask(
+        taskManager.CreateSubtask(
             title: "Implement the Feature",
             deadline: DateTime.UtcNow.AddDays(5),
             priority: WorkTask.TaskPriority.High,
-            parentTask: mainTask,
-            logger: logger,
-            config: new TaskConfig(10)
+            parentTask: mainTask
         );
 
-        Subtask subtask3 = taskManager.CreateSubtask(
+        taskManager.CreateSubtask(
             title: "Write Unit Tests",
             deadline: DateTime.UtcNow.AddDays(6),
             priority: WorkTask.TaskPriority.Medium,
-            parentTask: mainTask,
-            logger: logger,
-            config: new TaskConfig(10)
+            parentTask: mainTask
         );
 
-        Console.WriteLine("Main Task and Subtasks:");
-        Console.WriteLine(taskReportGenerator.GenerateReport(mainTask));
-        foreach (var subtask in mainTask.Subtasks)
+        logger.Log("Main Task and Subtasks:");
+        logger.Log(taskReportGenerator.GenerateReport(mainTask));
+        foreach (Subtask subtask in mainTask.Subtasks)
         {
-            Console.WriteLine($"  - {taskReportGenerator.GenerateReport(subtask)}");
+            logger.Log($"  - {subtaskReportGenerator.GenerateReport(subtask)}");
         }
-        Console.WriteLine();
+        logger.Log();
 
         // Step 4: Mark a Task as Completed
         taskManager.CompleteTask(mainTask.ID);
-        Console.WriteLine();
+        logger.Log();
 
         // Step 5: View All Tasks by Priority
-        Console.WriteLine("Tasks by Priority (High):");
+        logger.Log("Tasks by Priority (High):");
         foreach (var task in taskManager.GetTasksByPriority(WorkTask.TaskPriority.High))
         {
-            Console.WriteLine($"- {taskReportGenerator.GenerateReport(task)}");
+            logger.Log($"- {taskReportGenerator.GenerateReport(task)}");
         }
-        Console.WriteLine();
+        logger.Log();
 
         // Step 6: Display Task Statistics
         var stats = taskManager.GetTaskStats();
-        Console.WriteLine("Task Statistics:");
-        Console.WriteLine(stats);
-        Console.WriteLine(
-            taskService.CalculateCompletionPercentage(new List<WorkTask> { mainTask, bugFixTask })
-                + "% completed."
+        logger.Log("Task Statistics:");
+        logger.Log(stats.ToString());
+        logger.Log(
+            taskService.CalculateCompletionPercentage(taskManager.GetAllTasks()) + "% completed."
         );
     }
 }

@@ -1,6 +1,7 @@
+using TaskManagementApp.Interfaces;
 using TaskManagementApp.Models;
 
-namespace TaskManagementApp.Utilities
+namespace TaskManagementApp.Services
 {
     public class TaskService : ITaskService
     {
